@@ -8,8 +8,11 @@ const User = require('../users/users-model')
   }
 */
 function restricted(req, res, next) {
-  
-  next ()
+  if(req.session.user) {
+    next()
+  } else {
+    next({ status: 401, message: 'You shall not pass!'})
+  }
 }
 
 /*
@@ -26,7 +29,7 @@ async function checkUsernameFree(req, res, next) {
     if(!users.length) {
       next()
     } else {
-      next({ message: "username taken", status: 422 })
+      next({ message: "Username taken", status: 422 })
     }
   } catch(error) {
     next(error)
@@ -45,9 +48,10 @@ async function checkUsernameExists(req, res, next) {
   try {
     const users = await User.findBy({ username: req.body.username })
     if(users.length) {
+      req.user = users[0]
       next()
     } else {
-      next({ message: "invlaid credentials", status: 401 })
+      next({ message: "Invalid credentials", status: 401 })
     }
   } catch(error) {
     next(error)
